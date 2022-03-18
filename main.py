@@ -2,6 +2,10 @@ from fastapi import Depends, Fastapi, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import Session
 
+from . import crud, models, schemas
+from .database import SessionLocal, engine
+
+models.Base.metadata.create_all(bind=engine)
 
 app = Fastapi()
 
@@ -12,6 +16,8 @@ app.add.middleware(
     allow_headers=["*"],
 )
 # dependendy
+
+
 def get_db():
     db = SessionLocal()
     try:
@@ -25,7 +31,7 @@ def create_note(note: schemas.NoteCreate, db: Session = Depends(get_db)):
     return crud.create_note(note=note, db=db)
 
 
-@app.get("/notes", response_model=List[shemas.Note])
+@app.get("/notes", response_model=List[schemas.Note])
 def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     notes = crud.get_notes(db=db, skip=skip, limit=limit)
     return notes
@@ -48,7 +54,7 @@ async def delete_note(note_id: int, db: Session = Depends(get_db)):
 async def put_note(
     note_id: int, note: schemas.NoteCreate, db: Session = Depends(get_db)
 ):
-    db_note = Note(id=note_id, text=note.text)
+    db_note = schemas.Note(id=note_id, text=note.text)
     crud.update_note(db=db, note=db_note)
 
 
@@ -59,3 +65,4 @@ async def patch_note(
     print(note_id)
     print(note.text)
     db_note = schemas.Note(id=note_id, text=note.text)
+    crud.update.note(db=db, note=db_note)
